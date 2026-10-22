@@ -1,11 +1,6 @@
-"""Mesures de temps sur les opérations dont le coût dépend du nombre de colis.
+"""Mesures pour 100, 1 000, 10 000 et 100 000 colis (graine 42).
 
-Les tailles demandées par l'énoncé sont 100, 1 000, 10 000 et 100 000.
-La graine est fixe : relancer le module reproduit les mêmes colis.
-
-Usage, depuis le dossier ``projet`` :
-
-    python -m src.benchmark
+Lancer depuis le dossier projet : python -m src.benchmark
 """
 
 import argparse
@@ -42,14 +37,14 @@ def executer(
     recherches: int = NOMBRE_RECHERCHES,
     graine: int = 42,
 ) -> list[Mesure]:
-    """Mesure l'ajout, la recherche, le tri et le chargement pour chaque taille."""
+    """Ajout, recherche, tri et chargement pour chaque taille."""
     return [
         _mesurer_taille(nombre, capacite, recherches, graine) for nombre in tailles
     ]
 
 
 def afficher(mesures: list[Mesure]) -> None:
-    """Affiche un tableau lisible dans le terminal."""
+    """Affiche le tableau des mesures."""
     print("Mesures reproductibles (graine 42, capacité du camion = 50 kg).")
     print("La recherche est une moyenne sur plusieurs identifiants présents et absents.")
     print()
@@ -87,7 +82,7 @@ def _mesurer_taille(nombre: int, capacite: int, recherches: int, graine: int) ->
     resultat = charger()
     chargement_ms = (time.perf_counter() - debut) * 1_000
 
-    # Contrôle hors chronomètre : le tri doit vraiment être ordonné.
+    # vérif hors chrono
     tries = collection.selon_poids()
     if any(tries[i].poids > tries[i + 1].poids for i in range(len(tries) - 1)):
         raise RuntimeError("Le tri fusion n'est pas ordonné.")
@@ -106,10 +101,9 @@ def _mesurer_taille(nombre: int, capacite: int, recherches: int, graine: int) ->
 
 
 def _mesurer_recherches(collection, nombre: int, recherches: int) -> float:
-    """Temps moyen d'une recherche, en microsecondes.
+    """Temps moyen d'une recherche, en µs.
 
-    La moitié des requêtes vise un identifiant présent, l'autre un identifiant
-    absent. On évite ainsi de ne mesurer que des succès.
+    Une requête sur deux cherche un id absent.
     """
     debut = time.perf_counter()
     for indice in range(recherches):
@@ -128,11 +122,7 @@ def _chrono(action) -> float:
 
 
 def _pic_ko(action) -> float:
-    """Pic d'allocations Python pendant l'action, en kibioctets.
-
-    La mesure est séparée du chronomètre : tracemalloc ralentit l'exécution
-    et ne doit pas fausser les temps.
-    """
+    """Pic mémoire en Ko. À part du chrono, tracemalloc ralentit."""
     tracemalloc.start()
     action()
     _courant, pic = tracemalloc.get_traced_memory()

@@ -1,14 +1,10 @@
-"""Indicateurs calculés en un seul parcours de la collection.
-
-Temps : O(n). Espace supplémentaire : O(d + p) où d est le nombre de
-destinations distinctes et p le nombre de priorités distinctes.
-"""
+"""Stats en un seul parcours. O(n)."""
 
 from src.collection import CollectionColis
 
 
 def calculer(collection: CollectionColis) -> dict:
-    """Retourne les statistiques, ou un dictionnaire vide d'effectifs si aucun colis."""
+    """Stats de la collection. Effectifs vides s'il n'y a aucun colis."""
     nombre = 0
     poids_total = 0
     valeur_totale = 0

@@ -2,7 +2,8 @@
 
 Programme de gestion des colis et de préparation du chargement d'un camion.
 
-Le langage retenu est **Python 3** (3.10 ou plus récent). Il est indiqué ici, comme demandé, et justifié plus longuement dans `rapport.pdf`. En bref : le `dict` fournit la table de hachage utilisée pour retrouver un colis, et le langage ne donne aucun avantage à l'évaluation. Le tri et le sac à dos, qui sont le cœur algorithmique du devoir, sont écrits dans le projet. Aucune bibliothèque externe ne résout ces problèmes. Seule la bibliothèque standard est utilisée (menu, mesures de temps, génération aléatoire).
+Langage : **Python 3** (3.10 ou plus). Le choix est détaillé dans `rapport.pdf`.
+La recherche par identifiant passe par un `dict`. Le tri fusion et le sac à dos sont écrits dans le projet, sans bibliothèque externe. On n'utilise que la bibliothèque standard (menu, mesures, génération aléatoire).
 
 ## Lancer le programme
 

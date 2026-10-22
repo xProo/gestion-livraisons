@@ -1,4 +1,4 @@
-"""Point d'entrée : ``python -m src`` depuis le dossier ``projet``."""
+"""Lancement : python -m src depuis le dossier projet."""
 
 import sys
 

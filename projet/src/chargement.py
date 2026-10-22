@@ -1,30 +1,11 @@
-"""Sélection des colis à charger dans un camion de capacité limitée.
+"""Choix des colis à mettre dans le camion (sac à dos 0/1).
 
-On résout un sac à dos 0/1 : chaque colis est pris au plus une fois, le poids
-total ne dépasse pas la capacité, et l'on maximise un score entier.
+Critère "valeur" : somme des valeurs.
+Critère "score" : somme de valeur × priorité.
 
-Critères
----------
-- ``valeur`` : on maximise la somme des valeurs.
-- ``score`` : on maximise la somme des ``valeur × priorité``.
-
-La seconde règle est celle qui fait intervenir la priorité. Elle ne maximise
-pas la valeur monétaire : elle maximise un objectif qui rend les colis
-prioritaires plus intéressants. Pour cet objectif, la programmation dynamique
-et la rencontre au milieu sont optimales. Le glouton ne l'est pas.
-
-Stratégie adaptative
---------------------
-1. Programmation dynamique si n × (C + 1) reste sous un seuil.
-   Temps O(n · C), espace O(n · C) pour mémoriser les décisions.
-2. Sinon, rencontre au milieu si n est assez petit.
-   Temps et espace O(2^(n/2) · n), indépendants de C. Optimale.
-3. Sinon, glouton par densité score / poids.
-   Temps O(n log n), espace O(n). La capacité est respectée, le score non
-   garanti maximal.
-
-Les poids et la capacité sont des entiers (des kilogrammes), comme dans
-l'énoncé. C'est ce qui permet la programmation dynamique.
+- programmation dynamique si n × (C + 1) <= seuil (O(n·C))
+- sinon rencontre au milieu si n <= 36 (O(2^(n/2)))
+- sinon glouton par densité, pas toujours optimal (O(n log n))
 """
 
 from dataclasses import dataclass
@@ -35,11 +16,10 @@ from src.tri import tri_fusion
 VALEUR = "valeur"
 SCORE = "score"
 
-# Environ 8 Mo pour la table de décisions, et un nombre de cases encore
-# raisonnable à parcourir en Python.
+# au-delà, la table est trop grosse (environ 8 Mo)
 SEUIL_CELLULES_DP = 8_000_000
 
-# n = 36 découpe le problème en deux moitiés de 18 objets : 2^18 = 262 144 états.
+# moitié de 18 objets : 2^18 états
 SEUIL_RENCONTRE = 36
 
 ALGO_DP = "programmation dynamique"
@@ -50,7 +30,7 @@ ALGO_TRIVIAL = "cas trivial"
 
 @dataclass(frozen=True, slots=True)
 class ResultatChargement:
-    """Plan de chargement produit par ``preparer_chargement``."""
+    """Résultat de preparer_chargement."""
 
     colis_choisis: tuple[Colis, ...]
     capacite: int
@@ -77,7 +57,7 @@ class ResultatChargement:
 
 
 def score_de(colis: Colis, critere: str) -> int:
-    """Valeur numérique maximisée pour un colis, selon le critère choisi."""
+    """Valeur ou score du colis, selon le critère."""
     if critere == VALEUR:
         return colis.valeur
     if critere == SCORE:
@@ -90,10 +70,9 @@ def preparer_chargement(
     capacite: int,
     critere: str = SCORE,
 ) -> ResultatChargement:
-    """Choisit un sous-ensemble de colis qui tient dans le camion.
+    """Sous-ensemble de colis qui tient dans le camion.
 
-    ``critere`` vaut ``valeur`` ou ``score``. Voir le docstring du module pour
-    les complexités et la garantie d'optimalité.
+    critere vaut "valeur" ou "score".
     """
     if isinstance(capacite, bool) or not isinstance(capacite, int) or capacite < 0:
         raise ValueError("La capacité doit être un entier positif ou nul.")
@@ -137,8 +116,7 @@ def preparer_chargement(
             optimal=resultat.optimal,
             explication=(
                 f"{resultat.explication} {exclus} colis plus lourds que le "
-                "camion ont été écartés d'office : ils ne peuvent figurer dans "
-                "aucune solution réalisable."
+                "camion ont été écartés."
             ),
         )
     return resultat
@@ -170,14 +148,9 @@ def _programmation_dynamique(
     capacite: int,
     critere: str,
 ) -> ResultatChargement:
-    """Sac à dos 0/1 itératif, avec reconstruction des colis retenus.
+    """Sac à dos 0/1. dp[w] = meilleur score avec une capacité w.
 
-    ``dp[w]`` est le meilleur score atteignable avec une capacité exactement
-    disponible de ``w`` kilogrammes, en n'utilisant que les colis déjà examinés.
-    On parcourt les capacités à l'envers pour qu'un colis ne soit pris qu'une fois.
-
-    La table ``pris`` retient, pour chaque colis et chaque capacité, si ce colis
-    a été retenu pour améliorer cette capacité. Un octet par case suffit.
+    Parcours des capacités à l'envers pour ne prendre chaque colis qu'une fois.
     """
     nombre = len(candidats)
     largeur = capacite + 1
@@ -215,8 +188,8 @@ def _programmation_dynamique(
         ALGO_DP,
         True,
         (
-            "Programmation dynamique du sac à dos 0/1. Chaque colis est pris "
-            "au plus une fois. La solution est optimale pour le critère choisi."
+            "Programmation dynamique (sac à dos 0/1). "
+            "Solution optimale pour le critère choisi."
         ),
     )
 
@@ -226,13 +199,7 @@ def _rencontre_au_milieu(
     capacite: int,
     critere: str,
 ) -> ResultatChargement:
-    """Énumère les deux moitiés du lot puis combine les sous-ensembles compatibles.
-
-    On trie la seconde moitié par poids et l'on précalcule le meilleur score
-    atteignable avec un poids inférieur ou égal à chaque préfixe. Pour chaque
-    sous-ensemble de la première moitié, une dichotomie trouve le complément
-    le plus intéressant qui tient encore dans le camion.
-    """
+    """Coupe le lot en deux, énumère chaque moitié, combine par dichotomie."""
     milieu = len(candidats) // 2
     gauche = candidats[:milieu]
     droite = candidats[milieu:]
@@ -282,21 +249,20 @@ def _rencontre_au_milieu(
         ALGO_RENCONTRE,
         True,
         (
-            "Rencontre au milieu : les sous-ensembles des deux moitiés sont "
-            "énumérés puis combinés par dichotomie. La solution est optimale "
-            "pour le critère choisi. Le coût dépend de n, pas de la capacité."
+            "Rencontre au milieu. Solution optimale pour le critère choisi. "
+            "Le temps dépend de n, pas de la capacité."
         ),
     )
 
 
 def _enumerer(colis: list[Colis], scores: list[int]) -> list[tuple[int, int, int]]:
-    """Tous les sous-ensembles : (poids, score, masque de bits)."""
+    """Tous les sous-ensembles : (poids, score, masque)."""
     etats = [(0, 0, 0)]
     for indice, element in enumerate(colis):
         bit = 1 << indice
         masse = element.poids
         gain = scores[indice]
-        # Liste calculée d'abord : étendre pendant le parcours relancerait l'itération.
+        # liste à part, sinon le extend relance la boucle
         ajouts = [
             (poids + masse, score + gain, masque | bit) for poids, score, masque in etats
         ]
@@ -309,10 +275,7 @@ def _decoder(colis: list[Colis], masque: int) -> list[Colis]:
 
 
 def _dernier_indice_au_plus(poids_tries: list[int], limite: int) -> int:
-    """Plus grand indice dont le poids est inférieur ou égal à ``limite``, ou -1.
-
-    Dichotomie. Temps O(log m) où m est le nombre de sous-ensembles.
-    """
+    """Plus grand indice de poids <= limite, ou -1. Dichotomie."""
     gauche = 0
     droite = len(poids_tries) - 1
     reponse = -1
@@ -331,11 +294,9 @@ def _glouton(
     capacite: int,
     critere: str,
 ) -> ResultatChargement:
-    """Prend les colis dans l'ordre décroissant de la densité score / poids.
+    """Colis pris par densité décroissante, tant qu'il reste de la place.
 
-    Ce tri réutilise le tri fusion du projet. En cas d'égalité de densité,
-    l'ordre d'origine est conservé. Un colis est chargé s'il tient dans la
-    place restante. Rien ne garantit que le score total soit maximal.
+    Pas toujours optimal.
     """
     tries = tri_fusion(
         candidats,
@@ -355,9 +316,7 @@ def _glouton(
         ALGO_GLOUTON,
         False,
         (
-            "Glouton par densité (score / poids), trié par le tri fusion. "
-            "La capacité est respectée, mais le score n'est pas toujours maximal. "
-            "La programmation dynamique aurait demandé trop de cases, et il y a "
-            f"plus de {SEUIL_RENCONTRE} colis pour une rencontre au milieu."
+            "Glouton par densité (score / poids). "
+            "La capacité est respectée, le score n'est pas toujours maximal."
         ),
     )

@@ -1,8 +1,4 @@
-"""Tri fusion ascendant, stable, de complexité garantie.
-
-Le tri est écrit explicitement : l'affichage ordonné des colis est un cœur
-algorithmique du projet, il ne délègue donc pas à la fonction native ``sorted``.
-"""
+"""Tri fusion ascendant, stable. O(n log n) temps, O(n) mémoire."""
 
 from typing import Callable, TypeVar
 
@@ -10,16 +6,11 @@ T = TypeVar("T")
 
 
 def tri_fusion(elements: list[T], cle: Callable[[T], object]) -> list[T]:
-    """Retourne une nouvelle liste triée selon ``cle``, sans modifier l'entrée.
+    """Nouvelle liste triée selon cle. L'entrée n'est pas modifiée.
 
-    Algorithme : tri fusion ascendant (bottom-up). Les clés sont calculées une
-    seule fois, puis chaque passe fusionne des sous-suites de taille 1, 2, 4…
-
-    Temps : O(n log n) dans tous les cas. La fonction ``cle`` est appelée n fois.
-    Espace : O(n) pour la copie, le tableau tampon et les clés. Pas de pile
-    récursive : l'espace supplémentaire de la récursion est O(1).
-    Stabilité : si deux clés sont égales, l'élément le plus à gauche reste
-    devant. L'ordre d'insertion des colis est donc conservé en cas d'ex æquo.
+    Bottom-up, clés calculées une seule fois.
+    O(n log n) dans tous les cas, O(n) en mémoire, pas de récursion.
+    Stable : à clé égale, on garde l'ordre de départ.
     """
     source = list(elements)
     nombre = len(source)
@@ -40,7 +31,7 @@ def tri_fusion(elements: list[T], cle: Callable[[T], object]) -> list[T]:
         lire_source = not lire_source
         taille *= 2
 
-    # Après une passe, le résultat se trouve dans le tableau qui vient d'être écrit.
+    # le résultat est dans le tableau qu'on vient d'écrire
     if lire_source:
         return source
     return tampon
@@ -79,12 +70,12 @@ def _fusionner(
     milieu: int,
     fin: int,
 ) -> None:
-    """Fusionne lecture[debut:milieu] et lecture[milieu:fin], déjà triées."""
+    """Fusionne deux moitiés déjà triées."""
     gauche = debut
     droite = milieu
     position = debut
     while gauche < milieu and droite < fin:
-        # Comparaison stricte : en cas d'égalité, on prend la moitié gauche.
+        # < strict : en cas d'égalité on garde la gauche
         if cles_lecture[droite] < cles_lecture[gauche]:
             ecriture[position] = lecture[droite]
             cles_ecriture[position] = cles_lecture[droite]

@@ -1,15 +1,13 @@
-"""Colis pris en charge par l'entreprise de livraison."""
+"""Représentation d'un colis."""
 
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
 class Colis:
-    """Un colis identifié, avec son poids, sa valeur, sa priorité et sa destination.
+    """Id, poids (kg), valeur, priorité, destination.
 
-    Hypothèse sur la priorité : un nombre plus grand signifie un colis plus
-    important. Les exemples du sujet utilisent des priorités de 1 à 5, mais
-    toute priorité entière supérieure ou égale à 1 est acceptée.
+    Priorité >= 1 : plus le nombre est grand, plus le colis est important.
     """
 
     identifiant: int
@@ -39,15 +37,7 @@ class Colis:
             object.__setattr__(self, "destination", self.destination.strip())
 
     def score(self) -> int:
-        """Score utilisé quand la priorité influence le chargement.
-
-        score = valeur × priorité.
-
-        La valeur reste le gain de base. La priorité agit comme multiplicateur :
-        à valeur égale, un colis de priorité 5 compte cinq fois plus qu'un colis
-        de priorité 1. Le poids n'entre pas dans le score : il reste la contrainte
-        de capacité du camion.
-        """
+        """valeur × priorité. Le poids n'entre pas dans le score."""
         return self.valeur * self.priorite
 
 
@@ -58,7 +48,7 @@ def creer_colis(
     priorite: int,
     destination: str,
 ) -> Colis:
-    """Construit un colis après avoir nettoyé la destination."""
+    """Crée un colis, destination sans espaces autour."""
     if not isinstance(destination, str):
         raise ValueError("La destination doit être une chaîne de caractères.")
     return Colis(identifiant, poids, valeur, priorite, destination.strip())

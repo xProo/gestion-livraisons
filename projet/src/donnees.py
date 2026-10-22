@@ -1,4 +1,4 @@
-"""Jeux de données : exemple du sujet et génération pour les mesures."""
+"""Exemple du sujet et génération de colis pour les mesures."""
 
 import random
 
@@ -15,7 +15,7 @@ DESTINATIONS = (
     "Bordeaux",
 )
 
-# Exemple fourni dans l'énoncé.
+# exemple de l'énoncé
 EXEMPLE_SUJET: tuple[Colis, ...] = (
     Colis(101, 8, 20, 2, "Paris"),
     Colis(102, 3, 10, 5, "Lille"),
@@ -26,12 +26,10 @@ EXEMPLE_SUJET: tuple[Colis, ...] = (
 
 
 def generer_colis(nombre: int, graine: int = 42) -> list[Colis]:
-    """Crée ``nombre`` colis d'identifiants 1..nombre.
+    """Crée `nombre` colis (id de 1 à nombre).
 
-    Poids entre 1 et 30 kg, valeur entre 1 et 100, priorité entre 1 et 5.
-    La graine fixe la série : les mesures du rapport sont reproductibles.
-
-    Temps et espace : O(nombre).
+    Poids 1..30, valeur 1..100, priorité 1..5.
+    Même graine = mêmes colis. O(nombre).
     """
     if nombre < 0:
         raise ValueError("Le nombre de colis doit être positif ou nul.")

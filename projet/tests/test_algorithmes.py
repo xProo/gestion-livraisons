@@ -1,4 +1,4 @@
-"""Vérifie le tri, la recherche, le sac à dos et la règle de priorité."""
+"""Tests du tri, de la recherche et du chargement."""
 
 import random
 import unittest
@@ -23,7 +23,7 @@ from src.tri import tri_fusion
 
 
 def _oracle(colis, capacite, critere):
-    """Force brute utilisée seulement pour de tout petits lots."""
+    """Force brute, seulement pour les petits lots."""
     scores = [score_de(element, critere) for element in colis]
     meilleur = 0
     nombre = len(colis)
@@ -113,7 +113,7 @@ class TestCollectionEtTri(unittest.TestCase):
 
 class TestChargement(unittest.TestCase):
     def setUp(self):
-        # A, B, C, D de l'énoncé « priorité ».
+        # A B C D, cas priorité de l'énoncé
         self.lot = [
             Colis(1, 8, 20, 5, "A"),
             Colis(2, 6, 25, 1, "B"),
@@ -138,7 +138,7 @@ class TestChargement(unittest.TestCase):
         self.assertTrue(resultat.optimal)
         self.assertEqual(resultat.score_total, 114)
         self.assertEqual({c.destination for c in resultat.colis_choisis}, {"C", "D"})
-        # La valeur monétaire de ce plan est inférieure au plan « valeur seule ».
+        # valeur plus basse que le plan "valeur seule"
         self.assertEqual(resultat.valeur_totale, 32)
 
     def test_exemple_sujet_tient_entierement_dans_50_kg(self):
@@ -148,8 +148,7 @@ class TestChargement(unittest.TestCase):
         self.assertEqual(resultat.poids_total, 30)
 
     def test_glouton_pas_toujours_optimal(self):
-        # Densités 6, 5 et 4. Le glouton prend les deux premiers (valeur 160).
-        # L'optimum est le deuxième plus le troisième (valeur 220).
+        # densités 6, 5, 4 -> glouton 160, optimal 220
         lot = [
             Colis(1, 10, 60, 1, "X"),
             Colis(2, 20, 100, 1, "Y"),
@@ -196,7 +195,7 @@ class TestChargement(unittest.TestCase):
                     self.assertEqual(score_de_total(resultat, critere), attendu)
 
     def test_grande_capacite_utilise_la_rencontre_au_milieu(self):
-        # 20 × 500 001 dépasse le seuil de la programmation dynamique, et 20 <= 36.
+        # 20 colis, capacité énorme : DP trop grosse, n <= 36
         lot = generer_colis(20, graine=3)
         resultat = preparer_chargement(lot, 500_000, SCORE)
         self.assertEqual(resultat.algorithme, ALGO_RENCONTRE)
@@ -204,7 +203,7 @@ class TestChargement(unittest.TestCase):
         self.assertLessEqual(resultat.poids_total, 500_000)
 
     def test_beaucoup_de_colis_et_grande_capacite_utilisent_le_glouton(self):
-        # 80 colis et une grande capacité : ni la table dynamique ni la rencontre au milieu.
+        # 80 colis et grosse capacité : glouton
         lot = generer_colis(80, graine=4)
         resultat = preparer_chargement(lot, 1_000_000, VALEUR)
         self.assertEqual(resultat.algorithme, ALGO_GLOUTON)

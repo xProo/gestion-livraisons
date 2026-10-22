@@ -1,8 +1,4 @@
-"""Menu texte pour exercer l'ensemble du système.
-
-L'interface reste volontairement simple : elle sert à tester les opérations,
-pas à présenter un écran élaboré.
-"""
+"""Menu en ligne de commande."""
 
 import time
 
@@ -21,7 +17,7 @@ CRITERES = {
 
 
 class Session:
-    """État de la session : la collection courante et le dernier chargement."""
+    """Collection en cours et dernier chargement."""
 
     def __init__(self) -> None:
         self.collection = CollectionColis()
@@ -29,7 +25,7 @@ class Session:
 
 
 def boucle() -> None:
-    """Affiche le menu jusqu'à ce que l'utilisateur quitte."""
+    """Boucle du menu jusqu'au choix 0."""
     session = Session()
     actions = {
         "1": afficher_colis,
@@ -56,12 +52,12 @@ def boucle() -> None:
 
 
 def afficher_colis(session: Session) -> None:
-    """Affiche les colis dans l'ordre d'insertion."""
+    """Liste les colis dans l'ordre d'insertion."""
     _paginer(session.collection.tous(), "Colis dans l'ordre d'insertion")
 
 
 def ajouter_colis(session: Session) -> None:
-    """Demande les champs d'un colis et l'ajoute à la collection."""
+    """Saisie d'un colis, puis ajout."""
     try:
         colis = creer_colis(
             _lire_entier("Identifiant : "),
@@ -78,7 +74,7 @@ def ajouter_colis(session: Session) -> None:
 
 
 def rechercher_colis(session: Session) -> None:
-    """Recherche un colis par identifiant et affiche le résultat."""
+    """Recherche par identifiant."""
     identifiant = _lire_entier("Identifiant recherché : ")
     debut = time.perf_counter()
     colis = session.collection.rechercher(identifiant)
@@ -88,11 +84,11 @@ def rechercher_colis(session: Session) -> None:
     else:
         _entete()
         print(_ligne(colis))
-    print(f"Recherche terminée en {duree:.1f} µs (temps moyen attendu constant).")
+    print(f"Recherche terminée en {duree:.1f} µs.")
 
 
 def organiser_colis(session: Session) -> None:
-    """Trie les colis selon le poids, la valeur ou la priorité."""
+    """Tri par poids, valeur ou priorité."""
     print()
     print("1. Poids croissant")
     print("2. Poids décroissant")
@@ -126,7 +122,7 @@ def organiser_colis(session: Session) -> None:
 
 
 def preparer_camion(session: Session) -> None:
-    """Calcule un chargement pour une capacité et un critère donnés."""
+    """Calcule un chargement (capacité + critère)."""
     if len(session.collection) == 0:
         print("La collection est vide. Ajoutez ou chargez des colis d'abord.")
         return
@@ -151,7 +147,7 @@ def preparer_camion(session: Session) -> None:
 
 
 def afficher_chargement(session: Session) -> None:
-    """Affiche le dernier plan de chargement calculé."""
+    """Affiche le dernier chargement."""
     resultat = session.chargement
     if resultat is None:
         print("Aucun camion n'a encore été préparé.")
@@ -172,7 +168,7 @@ def afficher_chargement(session: Session) -> None:
 
 
 def afficher_statistiques(session: Session) -> None:
-    """Affiche les indicateurs de la collection courante."""
+    """Affiche les stats."""
     stats = calculer(session.collection)
     print()
     print("===== STATISTIQUES =====")
@@ -195,7 +191,7 @@ def afficher_statistiques(session: Session) -> None:
 
 
 def charger_donnees(session: Session) -> None:
-    """Remplace la collection par l'exemple du sujet ou par un jeu généré."""
+    """Charge l'exemple du sujet ou un jeu généré."""
     print()
     print("1. Exemple du sujet (5 colis)")
     print("2. Générer 100 colis")
@@ -238,9 +234,9 @@ def charger_donnees(session: Session) -> None:
 
 
 def mesurer(session: Session) -> None:
-    """Lance les mesures sans modifier la collection de la session."""
-    print("Les mesures utilisent des collections temporaires.")
-    print("La collection en cours n'est pas modifiée. Cela prend quelques secondes.")
+    """Lance les mesures sans toucher à la collection en cours."""
+    print("Mesures sur des collections temporaires.")
+    print("La collection en cours n'est pas modifiée. Quelques secondes.")
     from src.benchmark import afficher, executer
 
     afficher(executer())
